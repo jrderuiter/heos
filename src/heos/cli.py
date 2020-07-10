@@ -13,6 +13,38 @@ def main():
 
 
 @main.group()
+def group():
+    pass
+
+
+@group.command()
+@click.option("--name", required=True)
+@click.option("--mute/--unmute", default=True)
+def set_mute(name, mute):
+    """Mutes/unmutes a player group."""
+
+    registry = Registry()
+
+    action = "Mute" if mute else "Unmute"
+    with registry.groups[name] as group:
+        group.mute = mute
+        logging.info(f"{action}d group '{group.name}'")
+
+
+@group.command()
+@click.option("--name", required=True)
+@click.option("--level", required=True, type=int)
+def set_volume(name, level):
+    """Sets the volume on a player group."""
+
+    registry = Registry()
+
+    with registry.groups[name] as group:
+        group.volume = level
+        logging.info(f"Set volume on group '{group.name}' to {group.volume}")
+
+
+@main.group()
 def player():
     pass
 
@@ -26,7 +58,7 @@ def set_mute(name, mute):
     registry = Registry()
 
     action = "Mute" if mute else "Unmute"
-    with registry.get_player(name) as player:
+    with registry.players[name] as player:
         player.mute = mute
         logging.info(f"{action}d player '{player.name}'")
 
@@ -39,6 +71,6 @@ def set_volume(name, level):
 
     registry = Registry()
 
-    with registry.get_player(name) as player:
+    with registry.players[name] as player:
         player.volume = level
         logging.info(f"Set volume on player '{player.name}' to {player.volume}")

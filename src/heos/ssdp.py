@@ -29,7 +29,7 @@ def discover(service, timeout=5, retries=1, mx=3):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
 
-        message = SSDPMessage(service=service, mx=mx)
+        message = SSDPMessage(st=service, mx=mx)
         sock.sendto(bytes(message), (message.address, message.port))
 
         while True:
@@ -44,7 +44,7 @@ def discover(service, timeout=5, retries=1, mx=3):
 
 @dataclass
 class SSDPMessage:
-    service: str
+    st: str
     address: str = "239.255.255.250"
     port: int = 1900
     mx: int = 3
@@ -55,7 +55,7 @@ class SSDPMessage:
             "M-SEARCH * HTTP/1.1",
             f"HOST: {self.address}:{self.port}",
             'MAN: "ssdp:discover"',
-            f"ST: {self.service}",
+            f"ST: {self.st}",
             f"MX: {self.mx}",
             "",
             "",
