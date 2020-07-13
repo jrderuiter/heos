@@ -1,16 +1,19 @@
 from dataclasses import dataclass
 import json
 from telnetlib import Telnet
-from typing import Any, Dict, List
-from urllib.parse import urlencode, urlparse, parse_qsl
-
-from cached_property import cached_property
-
-from . import ssdp
+from typing import Any, Dict
+from urllib.parse import urlencode, parse_qsl
 
 
 class Client:
-    def __init__(self, host):
+    """
+    Client for interacting with HEOS devices over telnet.
+
+    Follows the specification in:
+    http://rn.dmglobal.com/euheos/HEOS_CLI_ProtocolSpecification.pdf
+    """
+
+    def __init__(self, host: str):
         self.host = host
         self._telnet = None
 
@@ -22,11 +25,14 @@ class Client:
 
     @property
     def telnet(self):
+        """Telnet client used for interacting with the device."""
         if self._telnet is None:
             self._telnet = Telnet(self.host, port=1255)
         return self._telnet
 
     def send_command(self, command: str, params: Dict[str, Any] = None):
+        """Sends a heos command to the device, with optional parameters."""
+
         query = Query(command=command, params=params)
         self.telnet.write(bytes(query) + b"\n")
 
@@ -42,6 +48,8 @@ class Client:
 
 @dataclass
 class Query:
+    """Class respresenting a HEOS device command or query."""
+
     command: str
     params: Dict[str, Any] = None
 
@@ -55,13 +63,17 @@ class Query:
 
 @dataclass
 class Response:
+    """Class representing a response from a HEOS device."""
+
     command: str
     result: str
     message: str
     payload: Dict[str, Any]
 
     @classmethod
-    def from_bytes(cls, bytes_):
+    def from_bytes(cls, bytes_: bytes):
+        """Builds an instance from the given response bytes."""
+
         data = json.loads(bytes_.decode("utf-8"))
         return cls(
             command=data["heos"]["command"],
@@ -71,9 +83,12 @@ class Response:
         )
 
     @property
-    def message_fields(self):
+    def message_fields(self) -> Dict[str, str]:
+        """Parsed message fields."""
         return dict(parse_qsl(self.message))
 
     def raise_for_result(self):
+        """Raises an error if the response result was not successful."""
+
         if self.result != "success":
             raise ValueError(f"Command {self.command} failed with error {self.message}")

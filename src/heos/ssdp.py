@@ -20,6 +20,8 @@ from urllib.parse import urlparse
 
 
 def discover(service, timeout=5, retries=1, mx=3):
+    """Discovers UPnP services on the local network using SSDP."""
+
     socket.setdefaulttimeout(timeout)
 
     responses = {}
@@ -44,6 +46,8 @@ def discover(service, timeout=5, retries=1, mx=3):
 
 @dataclass
 class SSDPMessage:
+    """Class respresenting an SSDP broadcast message."""
+
     st: str
     address: str = "239.255.255.250"
     port: int = 1900
@@ -68,6 +72,8 @@ class SSDPMessage:
 
 @dataclass
 class SSDPResponse:
+    """Class respresenting an SSDP response message."""
+
     location: str
     usn: str
     st: str
@@ -78,7 +84,9 @@ class SSDPResponse:
             return self
 
     @classmethod
-    def from_bytes(cls, response):
+    def from_bytes(cls, response: bytes):
+        """Builds an instance from the given bytes."""
+
         r = http.client.HTTPResponse(cls._FakeSocket(response))
         r.begin()
         return cls(
@@ -90,6 +98,7 @@ class SSDPResponse:
 
     @property
     def host(self):
+        """Host that sent the response."""
         return urlparse(self.location).hostname
 
 

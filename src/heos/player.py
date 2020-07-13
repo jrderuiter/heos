@@ -1,11 +1,24 @@
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict
 
 from .client import Client
 
 
+class PlayState(Enum):
+    """HEOS player state (e.g. play/pause/stop)."""
+
+    play = "play"
+    pause = "pause"
+    stop = "stop"
+
 
 @dataclass
 class Player:
+    """
+    Class representing a HEOS player, used for issuing commands to specific players.
+    """
+
     id: int
     name: str
     host: str
@@ -20,11 +33,14 @@ class Player:
         self.client.close()
 
     @property
-    def volume(self):
+    def volume(self) -> int:
+        """Player volume."""
+
         response = self.client.send_command(
             "player/get_volume", params={"pid": self.id}
         )
         response.raise_for_result()
+
         return int(response.message_fields["level"])
 
     @volume.setter
@@ -38,9 +54,12 @@ class Player:
         response.raise_for_result()
 
     @property
-    def mute(self):
+    def mute(self) -> bool:
+        """Player mute status."""
+
         response = self.client.send_command("player/get_mute", params={"pid": self.id})
         response.raise_for_result()
+
         return response.message_fields["state"] == "on"
 
     @mute.setter
@@ -51,9 +70,58 @@ class Player:
         )
         response.raise_for_result()
 
+    @property
+    def now_playing(self) -> Dict[Any, Any]:
+        """Media that is currently being played."""
+
+        response = self.client.send_command(
+            "player/get_now_playing_media", params={"pid": self.id}
+        )
+        response.raise_for_result()
+
+        return response.payload
+
+    def play(self):
+        """Starts/resumes playback."""
+        self._set_play_state(PlayState.play)
+
+    def pause(self):
+        """Pauses playback."""
+        self._set_play_state(PlayState.pause)
+
+    def stop(self):
+        """Stops playback."""
+        self._set_play_state(PlayState.stop)
+
+    def _set_play_state(self, state: PlayState):
+        response = self.client.send_command(
+            "player/set_play_state", params={"pid": self.id, "state": state.value}
+        )
+        response.raise_for_result()
+
+    def play_next(self):
+        """Plays the next item in the player queue."""
+
+        response = self.client.send_command(
+            "player/play_next", params={"pid": self.id}
+        )
+        response.raise_for_result()
+
+    def play_previous(self):
+        """Plays the previous item in the player queue."""
+
+        response = self.client.send_command(
+            "player/play_previous", params={"pid": self.id}
+        )
+        response.raise_for_result()
+
 
 @dataclass
 class PlayerGroup:
+    """
+    Class representing a HEOS player group, used for issuing commands to the group.
+    """
+
     id: int
     name: str
     host: str
@@ -68,7 +136,8 @@ class PlayerGroup:
         self.client.close()
 
     @property
-    def players(self):
+    def players(self) -> Dict[str, Player]:
+        """All players in the group (keyed by name)."""
         return self._get_players()
 
     def _get_players(self, role=None):
@@ -87,17 +156,22 @@ class PlayerGroup:
         }
 
     @property
-    def leader(self):
+    def leader(self) -> Player:
+        """Player that is leading the group."""
         return next(iter(self._get_players(role="leader").values()))
 
     @property
-    def members(self):
+    def members(self) -> Dict[str, Player]:
+        """Following members (e.g. non-leaders) in the group."""
         return self._get_players(role="member")
 
     @property
-    def volume(self):
+    def volume(self) -> int:
+        """Group volume."""
+
         response = self.client.send_command("group/get_volume", params={"gid": self.id})
         response.raise_for_result()
+
         return int(response.message_fields["level"])
 
     @volume.setter
@@ -111,9 +185,12 @@ class PlayerGroup:
         response.raise_for_result()
 
     @property
-    def mute(self):
+    def mute(self) -> bool:
+        """Group mute status."""
+
         response = self.client.send_command("group/get_mute", params={"gid": self.id})
         response.raise_for_result()
+
         return response.message_fields["state"] == "on"
 
     @mute.setter
@@ -123,3 +200,40 @@ class PlayerGroup:
             params={"gid": self.id, "state": "on" if value else "off"},
         )
         response.raise_for_result()
+
+    @property
+    def now_playing(self):
+        """Media that is currently being played."""
+
+        with self.leader as player:
+            return player.now_playing
+
+    def play(self):
+        """Starts/resumes playback."""
+
+        with self.leader as player:
+            player.play()
+
+    def pause(self):
+        """Pauses playback."""
+
+        with self.leader as player:
+            player.pause()
+
+    def stop(self):
+        """Stops playback."""
+
+        with self.leader as player:
+            player.stop()
+
+    def play_next(self):
+        """Plays the next item in the queue."""
+
+        with self.leader as player:
+            player.play_next()
+
+    def play_previous(self):
+        """Plays the previous item in the queue."""
+
+        with self.leader as player:
+            player.play_previous()
