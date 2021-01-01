@@ -86,7 +86,7 @@ registry.discover()
 
 Alternatively, you can also delete the `.heos` file to start clean.
 
-# Command line interface 
+## Command line interface 
 
 The `heos` library also provides a command line interface (CLI) that you can use to send commands to players or player groups from the terminal.
 
@@ -104,13 +104,13 @@ heos player --name "Living Room" mute
  
 Equivalent commands are provided for player groups using the `heos group` comand.
 
-# Contributing 
+## Contributing 
 
 Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given.
 
 You can contribute in many ways:
 
-## Report Bugs
+### Report Bugs
 
 Report bugs at https://github.com/jrderuiter/heos/issues.
 
@@ -120,19 +120,19 @@ If you are reporting a bug, please include:
 * Any details about your local setup that might be helpful in troubleshooting.
 * Detailed steps to reproduce the bug.
 
-## Fix Bugs
+### Fix Bugs
 
 Look through the GitHub issues for bugs. Anything tagged with "bug" and "help wanted" is open to whoever wants to implement it.
 
-## Implement Features
+### Implement Features
 
 Look through the GitHub issues for features. Anything tagged with "enhancement" and "help wanted" is open to whoever wants to implement it.
 
-## Write Documentation
+### Write Documentation
 
 We  could always use more documentation, whether as part of the official docs, in docstrings, or even on the web in blog posts, articles, and such.
 
-## Submit Feedback
+### Submit Feedback
 
 The best way to send feedback is to file an issue at https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/issues.
 
