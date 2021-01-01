@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from telnetlib import Telnet
 from typing import Any, Dict
 from urllib.parse import urlencode, parse_qsl

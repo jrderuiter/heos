@@ -12,10 +12,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from dataclasses import dataclass
 import http.client
 import io
 import socket
+from dataclasses import dataclass
 from urllib.parse import urlparse
 
 
@@ -87,6 +87,7 @@ class SSDPResponse:
     def from_bytes(cls, response: bytes):
         """Builds an instance from the given bytes."""
 
+        # noinspection PyTypeChecker
         r = http.client.HTTPResponse(cls._FakeSocket(response))
         r.begin()
         return cls(

@@ -3,8 +3,8 @@ import sys
 
 import click
 
-from ..registry import Registry
 from .main import cli
+from ..registry import Registry
 
 
 @cli.group()
@@ -62,8 +62,8 @@ def unmute(ctx):
 
 @group.command()
 @click.pass_context
-@click.option("--level", required=True, type=int)
-def volume(ctx, level):
+@click.argument("level", type=int)
+def set_volume(ctx, level):
     """Sets the volume on a player group."""
 
     with ctx.obj["group"] as group:

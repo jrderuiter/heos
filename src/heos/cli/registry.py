@@ -1,10 +1,7 @@
-import logging
-import sys
-
 import click
 
-from ..registry import Registry
 from .main import cli
+from ..registry import Registry
 
 
 @cli.group()
