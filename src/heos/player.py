@@ -45,8 +45,10 @@ class Player:
 
     @volume.setter
     def volume(self, value: int):
-        if not 0 <= value <= 100:
-            raise ValueError("Volume must be between 0 and 100")
+        if value < 0:
+            value = 0
+        elif value > 100:
+            value = 100
 
         response = self.client.send_command(
             "player/set_volume", params={"pid": self.id, "level": value}
@@ -81,6 +83,20 @@ class Player:
 
         return response.payload
 
+    @property
+    def play_state(self) -> PlayState:
+        response = self.client.send_command(
+            "player/get_play_state", params={"pid": self.id}
+        )
+        response.raise_for_result()
+
+        state_mapping = {
+            "play": PlayState.play,
+            "pause": PlayState.pause,
+            "stop": PlayState.stop,
+        }
+        return state_mapping[response.message_fields["state"]]
+
     def play(self):
         """Starts/resumes playback."""
         self._set_play_state(PlayState.play)
@@ -92,6 +108,13 @@ class Player:
     def stop(self):
         """Stops playback."""
         self._set_play_state(PlayState.stop)
+
+    def toggle_play(self, stop_state: PlayState = PlayState.pause):
+        """Toggles play state between play and pause/stop states."""
+        if self.play_state == PlayState.play:
+            self._set_play_state(stop_state)
+        else:
+            self._set_play_state(PlayState.play)
 
     def _set_play_state(self, state: PlayState):
         response = self.client.send_command(
@@ -208,23 +231,30 @@ class PlayerGroup:
         with self.leader as player:
             return player.now_playing
 
+    @property
+    def play_state(self):
+        with self.leader as player:
+            return player.play_state
+
     def play(self):
         """Starts/resumes playback."""
-
         with self.leader as player:
             player.play()
 
     def pause(self):
         """Pauses playback."""
-
         with self.leader as player:
             player.pause()
 
     def stop(self):
         """Stops playback."""
-
         with self.leader as player:
             player.stop()
+
+    def toggle_play(self, stop_state: PlayState = PlayState.pause):
+        """Toggles play state between play and pause/stop states."""
+        with self.leader as player:
+            player.toggle_play(stop_state=stop_state)
 
     def play_next(self):
         """Plays the next item in the queue."""

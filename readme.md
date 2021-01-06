@@ -134,7 +134,7 @@ We  could always use more documentation, whether as part of the official docs, i
 
 ### Submit Feedback
 
-The best way to send feedback is to file an issue at https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/issues.
+The best way to send feedback is to file an issue at https://github.com/jrderuiter/heos/issues.
 
 If you are proposing a feature:
 
